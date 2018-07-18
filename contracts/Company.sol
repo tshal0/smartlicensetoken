@@ -8,21 +8,26 @@
 pragma solidity ^0.4.23;
 
 import "../node_modules/zeppelin-solidity/contracts/token/ERC721/ERC721Receiver.sol";
+import "./SmartLicense.sol";
 
 contract Company is ERC721Receiver {
 
+    SmartLicense _smartLicense;
     mapping(address => uint) _clients;
     mapping(string => uint) _licenseTokens;
+    mapping(address => bool) _users;
     address _owner;
-    address[] _users;
     string _companyUri;
+
+    event ReceivedERC721Token(address indexed _sender, bytes32 message);
     
     function onERC721Received(address, uint256, bytes) public returns(bytes4) {
         return ERC721_RECEIVED;
     }
 
-    constructor (string companyUri) public ERC721Receiver()
+    constructor (address smartLicenseTokenAddress, string companyUri) public ERC721Receiver()
     {
+        _smartLicense = SmartLicense(smartLicenseTokenAddress);
         _companyUri = companyUri;
         _owner = msg.sender;
     }
@@ -38,7 +43,23 @@ contract Company is ERC721Receiver {
     }
 
     function registerUser(address user) public {
-        _users.push(user);
+        _users[user] = true;
+    }
+
+    function removeUser(address user) public {
+        _users[user] = false;
+    }
+
+    function userExists(address user) public view returns(bool) {
+        return _users[user];
+    }
+
+    function getCompanyUri() public view returns(string) {
+        return _companyUri;
+    }
+
+    function sendSmartLicenseToken(address destination, uint256 tokenId) public {
+        _smartLicense.safeTransferFrom(address(this), destination, tokenId);
     }
 
 }

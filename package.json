@@ -12,6 +12,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bluebird": "^3.5.1",
+    "lodash": "^4.17.10",
+    "npm": "^6.2.0",
+    "truffle-test-utils": "^0.1.0",
     "zeppelin-solidity": "^1.10.0"
   },
   "devDependencies": {
