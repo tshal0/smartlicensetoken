@@ -6,13 +6,13 @@ chai.use(chaiAsPromised)
 const { expect, assert } = chai
 
 var Company = artifacts.require("Company");
-var SmartLicense = artifacts.require("SmartLicense");
+var SmartProductLicense = artifacts.require("SmartProductLicense");
 
 contract('Testing Company contract', function(accounts) {
 
     let company;
     let token;
-    const name="SmartLicenseToken";
+    const name="SmartProductLicenseToken";
     const symbol="SLT";
     const account1 = accounts[1]
 
@@ -21,7 +21,7 @@ contract('Testing Company contract', function(accounts) {
     const account3 = accounts[3]
 
     it(' should be able to deploy Company', async () => {
-        token = await SmartLicense.new(name, symbol);
+        token = await SmartProductLicense.new(name, symbol);
         company = await Company.new(token.address, "companyuri");
 
         expect(await company.getCompanyUri()).to.equal("companyuri");
@@ -35,11 +35,11 @@ contract('Testing Company contract', function(accounts) {
     })
 
     it(' should be able to receive tokens', async () => {
-
-        var deployed = Company.deployed();
-
         let result = await token.mintUniqueTokenTo(company.address, 1000, "tokenuri", {from: accounts[0]})
-            .then(() => customUtils.assertEvent(company, {event: "ReceivedERC721Token"}));
+            .then(() => customUtils.assertEvent(token, {event: "Transfer", logIndex: 0, args:{_from: '0x0000000000000000000000000000000000000000', _to: company.address}})
+                .then((log) => { })
+                .catch((err) => { assert(false, err); })
+            );
         expect(await token.ownerOf(1000)).to.equal(company.address);
     })
 

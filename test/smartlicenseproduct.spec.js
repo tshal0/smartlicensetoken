@@ -3,9 +3,9 @@ import chaiAsPromised from 'chai-as-promised'
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
 
-var SmartLicense = artifacts.require("SmartLicense");
+var SmartProductLicense = artifacts.require("SmartProductLicense");
 
-contract('Testing ERC721 contract', function(accounts) {
+contract('Testing SmartProductLicense contract', function(accounts) {
 
     let token;
     const name = "BlueCat";
@@ -22,7 +22,7 @@ contract('Testing ERC721 contract', function(accounts) {
     const account3 = accounts[3]
 
     it(' should be able to deploy and mint ERC721 token', async () => {
-        token = await SmartLicense.new(name, symbol)
+        token = await SmartProductLicense.new(name, symbol)
         await token.mintUniqueTokenTo(account1, tokenId1, tokenUri1, {from: accounts[0]})
         
         expect(await token.symbol()).to.equal(symbol)

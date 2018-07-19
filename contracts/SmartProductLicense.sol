@@ -2,7 +2,7 @@ pragma solidity ^0.4.23;
 
 import "../node_modules/zeppelin-solidity/contracts/token/ERC721/ERC721Token.sol";
 
-contract SmartLicense is ERC721Token {
+contract SmartProductLicense is ERC721Token {
     constructor (string _name, string _symbol) public
         ERC721Token(_name, _symbol)
     {

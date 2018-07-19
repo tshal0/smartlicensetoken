@@ -10,14 +10,14 @@ pragma solidity ^0.4.23;
 import "../node_modules/zeppelin-solidity/contracts/token/ERC721/ERC721Receiver.sol";
 import "./SmartProductLicense.sol";
 
-contract Company is ERC721Receiver {
+contract SmartProduct is ERC721Receiver {
 
     SmartProductLicense _smartLicense;
-    mapping(address => uint) _clients;
+    mapping(address => uint) _customers;
     mapping(string => uint) _licenseTokens;
     mapping(address => bool) _users;
     address _owner;
-    string _companyUri;
+    string _productDescriptionUri;
 
     event ReceivedERC721Token(address indexed _sender, bytes32 message);
     
@@ -25,10 +25,10 @@ contract Company is ERC721Receiver {
         return ERC721_RECEIVED;
     }
 
-    constructor (address smartLicenseTokenAddress, string companyUri) public ERC721Receiver()
+    constructor (address smartLicenseTokenAddress, string productDescriptionUri) public ERC721Receiver()
     {
         _smartLicense = SmartProductLicense(smartLicenseTokenAddress);
-        _companyUri = companyUri;
+        _productDescriptionUri = productDescriptionUri;
         _owner = msg.sender;
     }
 
@@ -37,29 +37,16 @@ contract Company is ERC721Receiver {
     }
 
     function kill() public {
-        if (msg.sender == _owner) {
-            selfdestruct(_owner);
-        }
-    }
-
-    function registerUser(address user) public {
-        _users[user] = true;
-    }
-
-    function removeUser(address user) public {
-        _users[user] = false;
-    }
-
-    function userExists(address user) public view returns(bool) {
-        return _users[user];
-    }
-
-    function getCompanyUri() public view returns(string) {
-        return _companyUri;
+        require(msg.sender == _owner);
+        selfdestruct(_owner);
     }
 
     function sendSmartLicenseToken(address destination, uint256 tokenId) public {
+        require(msg.sender == _owner);
         _smartLicense.safeTransferFrom(address(this), destination, tokenId);
     }
 
+    function getProductDescriptionUri() public view returns(string) {
+        return _productDescriptionUri;
+    }
 }

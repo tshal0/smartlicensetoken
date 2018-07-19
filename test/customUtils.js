@@ -1,18 +1,19 @@
 var _ = require("lodash");
 var Promise = require("bluebird");
+import chai from 'chai'
+import chaiAsPromised from 'chai-as-promised'
 
 module.exports = {
     assertEvent: function(contract, filter) {
         return new Promise((resolve, reject) => {
-            var event = contract[filter.event]();
+            var event = typeof contract[filter.event] == 'function' ? contract[filter.event]() : reject(Error("Event doesn't exist"));
             event.watch();
             event.get((error, logs) => {
-                console.log(logs);
                 var log = _.filter(logs, filter);
-                if (log) {
+                if (log.length) {
                     resolve(log);
                 } else {
-                    throw Error("Failed to find filtered event for " + filter.event);
+                    reject("Failed to find filtered event for " + filter.event);
                 }
             });
             event.stopWatching();
