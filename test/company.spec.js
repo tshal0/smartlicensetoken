@@ -48,4 +48,16 @@ contract('Testing Company contract', function(accounts) {
             
         expect(await token.ownerOf(1000)).to.equal(account1);
     })
+
+    it(' should be able to allow user to checkout license', async () => {
+
+    })
+
+    it(' should be able to check in license', async () => {
+        
+    })
+
+    it(' should be able to check if user has valid license checked out', async () => {
+        
+    })
 });

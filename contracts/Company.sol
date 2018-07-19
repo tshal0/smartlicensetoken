@@ -13,9 +13,11 @@ import "./SmartProductLicense.sol";
 contract Company is ERC721Receiver {
 
     SmartProductLicense _smartLicense;
-    mapping(address => uint) _clients;
+    mapping(address => bool) _approvedClients;
     mapping(string => uint) _licenseTokens;
-    mapping(address => bool) _users;
+    mapping(address => bool) _approvedUsers;
+    mapping(address => bool) _clientHasValidLicense;
+    uint32 _checkedOutLicenses;
     address _owner;
     string _companyUri;
 
@@ -43,15 +45,25 @@ contract Company is ERC721Receiver {
     }
 
     function registerUser(address user) public {
-        _users[user] = true;
+        require(msg.sender == _owner);
+        _approvedUsers[user] = true;
     }
 
     function removeUser(address user) public {
-        _users[user] = false;
+        require(msg.sender == _owner);
+        _approvedUsers[user] = false;
+    }
+
+    function registerClient(address client) public {
+        _approvedClients[client] = true;
+    }
+
+    function removeClient(address client) public {
+        _approvedClients[client] = false;
     }
 
     function userExists(address user) public view returns(bool) {
-        return _users[user];
+        return _approvedUsers[user];
     }
 
     function getCompanyUri() public view returns(string) {
@@ -59,7 +71,15 @@ contract Company is ERC721Receiver {
     }
 
     function sendSmartLicenseToken(address destination, uint256 tokenId) public {
+        require(msg.sender == _owner);
         _smartLicense.safeTransferFrom(address(this), destination, tokenId);
+    }
+
+    function checkoutLicenseToken(address client) public {
+        require(_approvedUsers[msg.sender]);
+        require(_approvedClients[client]);
+
+        _clientHasValidLicense[client] = true;
     }
 
 }
