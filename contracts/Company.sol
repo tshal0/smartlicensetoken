@@ -14,14 +14,14 @@ contract Company is ERC721Receiver {
 
     SmartProductLicense _smartLicense;
     mapping(address => bool) _approvedClients;
-    mapping(string => uint) _licenseTokens;
-    mapping(address => bool) _approvedUsers;
-    mapping(address => bool) _clientHasValidLicense;
-    uint32 _checkedOutLicenses;
+    mapping(uint256 => address) _checkedOutLicenses;
     address _owner;
     string _companyUri;
 
     event ReceivedERC721Token(address indexed _sender, bytes32 message);
+
+    event CheckedOutLicense(address indexed _client, uint256 indexed _tokenId);
+    event CheckedInLicense(address indexed _client, uint256 indexed _tokenId);
     
     function onERC721Received(address, uint256, bytes) public returns(bytes4) {
         return ERC721_RECEIVED;
@@ -44,15 +44,15 @@ contract Company is ERC721Receiver {
         }
     }
 
-    function registerUser(address user) public {
-        require(msg.sender == _owner);
-        _approvedUsers[user] = true;
-    }
+    // function registerUser(address user) public {
+    //     require(msg.sender == _owner);
+    //     _approvedUsers[user] = true;
+    // }
 
-    function removeUser(address user) public {
-        require(msg.sender == _owner);
-        _approvedUsers[user] = false;
-    }
+    // function removeUser(address user) public {
+    //     require(msg.sender == _owner);
+    //     _approvedUsers[user] = false;
+    // }
 
     function registerClient(address client) public {
         _approvedClients[client] = true;
@@ -62,8 +62,8 @@ contract Company is ERC721Receiver {
         _approvedClients[client] = false;
     }
 
-    function userExists(address user) public view returns(bool) {
-        return _approvedUsers[user];
+    function clientExists(address client) public view returns(bool) {
+        return _approvedClients[client];
     }
 
     function getCompanyUri() public view returns(string) {
@@ -75,11 +75,37 @@ contract Company is ERC721Receiver {
         _smartLicense.safeTransferFrom(address(this), destination, tokenId);
     }
 
-    function checkoutLicenseToken(address client) public {
-        require(_approvedUsers[msg.sender]);
-        require(_approvedClients[client]);
+    function checkoutLicenseToken(uint256 tokenId) public {
+        require(_approvedClients[msg.sender]);
+        require(_checkedOutLicenses[tokenId] == 0);
+        _checkedOutLicenses[tokenId] = msg.sender;
+        emit CheckedOutLicense(msg.sender, tokenId);
+    }
 
-        _clientHasValidLicense[client] = true;
+    function checkinLicenseToken(uint256 tokenId) public {
+        require(_approvedClients[msg.sender]);
+        require(_checkedOutLicenses[tokenId] != 0);
+        _checkedOutLicenses[tokenId] = 0;
+        emit CheckedInLicense(msg.sender, tokenId);
+    }
+
+    function hasCheckedOutLicense(uint256 tokenId) public view returns(bool) {
+        return (_checkedOutLicenses[tokenId] == msg.sender);
+    }
+
+    function getCompanyTokenIdByIndex(uint256 tokenIndex) public view returns(uint256) {
+        uint balance = _smartLicense.balanceOf(address(this));
+        require(tokenIndex < balance);
+        return _smartLicense.tokenOfOwnerByIndex(address(this), tokenIndex);
+    }
+
+    function getLicenseTokens() public view returns(uint256[]){
+        uint balance = _smartLicense.balanceOf(address(this));
+        uint256[] memory tokens = new uint256[](balance);
+        for (uint i = 0; i < balance; i++){
+            tokens[i] = _smartLicense.tokenOfOwnerByIndex(address(this), i);
+        }
+        return tokens;
     }
 
 }

@@ -27,11 +27,12 @@ contract('Testing Company contract', function(accounts) {
         expect(await company.getCompanyUri()).to.equal("companyuri");
     })
 
-    it(' should be able to register and remove users', async () => {
-        await company.registerUser(account1);
-        expect(await company.userExists(account1)).to.equal(true);
-        await company.removeUser(account1);
-        expect(await company.userExists(account1)).to.equal(false);
+    it(' should be able to register and remove clients', async () => {
+        await company.registerClient(account1);
+        expect(await company.clientExists(account1)).to.equal(true);
+        await company.removeClient(account1);
+        expect(await company.clientExists(account1)).to.equal(false);
+        await company.registerClient(account1);
     })
 
     it(' should be able to receive tokens', async () => {
@@ -49,15 +50,40 @@ contract('Testing Company contract', function(accounts) {
         expect(await token.ownerOf(1000)).to.equal(account1);
     })
 
-    it(' should be able to allow user to checkout license', async () => {
+    it(' should be able to allow user get all licenses owned by company', async () => {
+        let tokens;
+        await token.mintUniqueTokenTo(company.address, 1001, "tokenuri", {from: accounts[0]});
+        await token.mintUniqueTokenTo(company.address, 1002, "tokenuri", {from: accounts[0]});
+        await token.mintUniqueTokenTo(company.address, 1003, "tokenuri", {from: accounts[0]});
+        await company.getLicenseTokens().then((bigNumTokens) => {
+            tokens = bigNumTokens.map(t => t.toFixed());
+        })
 
+        //company.getLicenseTokens.estimateGas().then((g) => {console.log(g)});
+        
+        expect(tokens).to.eql(['1001', '1002', '1003']);
+
+        await token.tokenURI(parseInt(tokens[0])).then((tokenUri) => {
+            
+        })
     })
 
-    it(' should be able to check in license', async () => {
+    it(' should be able to allow client to checkout license', async () => {
+        let tokens;
+        await company.getLicenseTokens().then((bigNumTokens) => {
+            tokens = bigNumTokens.map(t => parseInt(t.toFixed()));
+        });
         
+        await company.checkoutLicenseToken(tokens[0], {from: account1});
+        expect(await company.hasCheckedOutLicense(tokens[0], {from: account1})).to.eql(true);
     })
 
-    it(' should be able to check if user has valid license checked out', async () => {
-        
+    it(' should allow client to checkin license', async () => {
+        let tokens;
+        await company.getLicenseTokens().then((bigNumTokens) => {
+            tokens = bigNumTokens.map(t => parseInt(t.toFixed()));
+        });
+        await company.checkinLicenseToken(tokens[0], {from: account1});
+        expect(await company.hasCheckedOutLicense(tokens[0], {from: account1})).to.eql(false);
     })
 });
